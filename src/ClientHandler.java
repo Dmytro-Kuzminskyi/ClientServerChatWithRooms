@@ -1,13 +1,13 @@
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class ClientHandler implements Runnable {
 	private Server server;
 	private Socket client;
 	private ObjectOutputStream outputStream;
 	private ObjectInputStream inputStream;
-	private static int clientsCounter = 0;
 	private String username;
 	
 	
@@ -16,12 +16,12 @@ public class ClientHandler implements Runnable {
 			this.server = server;
 			this.client = client;
 			this.username = "";
-			clientsCounter++;
 			outputStream = new ObjectOutputStream(client.getOutputStream());
 			inputStream = new ObjectInputStream(client.getInputStream());
 		} catch (Exception e ) {
+			this.close();
 			e.printStackTrace();
-		}
+		} 
 	}
 
 	@Override
@@ -32,7 +32,8 @@ public class ClientHandler implements Runnable {
 				synchronized (inputStream) {
 						message = (Message)inputStream.readObject();
 						if (message != null)
-							send(prepareResponse(message));			
+							send(prepareResponse(message));		
+						server.updateUserList();
 					}
 			}
 		} catch (Exception e) {
@@ -53,7 +54,6 @@ public class ClientHandler implements Runnable {
 	
 	public void close() {
 		server.removeClient(this);
-		clientsCounter--;
 	}
 	
 	public String getUsername() {
@@ -74,7 +74,18 @@ public class ClientHandler implements Runnable {
 			if (!isSameUser) {
 				setUsername(msg.getText());
 				System.out.println(client.getInetAddress().getHostAddress() + "@" + username + " connected to the server.");
-				return new Message(Type.LOGIN, Response.OK);
+				ArrayList<ClientHandler> clients = server.getClients();
+				String text = "";
+				int size = clients.size();
+				for (ClientHandler c: clients) {
+					if (size-- != 1) {
+						text += c.getUsername() + "/";
+					} else {
+						text += c.getUsername();
+					}
+				}
+				System.out.println(text);
+				return new Message(Type.LOGIN, text);
 			} else {
 				return new Message(Type.LOGIN, Response.ERROR);
 			}

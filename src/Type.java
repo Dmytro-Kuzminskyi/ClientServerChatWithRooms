@@ -1,5 +1,6 @@
 
 public enum Type {
 	LOGIN,
-	EXIT
+	EXIT,
+	UPDATE
 }

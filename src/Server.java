@@ -36,6 +36,25 @@ public class Server {
 		}
 	}
 	
+	public void sendToAll(Message msg) {
+		for (ClientHandler client: clients) {
+			client.send(msg);
+		}
+	}
+	
+	public void updateUserList() {
+		String text = "";
+		int size = clients.size();
+		for (ClientHandler c: clients) {
+			if (size-- != 1) {
+				text += c.getUsername() + "/";
+			} else {
+				text += c.getUsername();
+			}
+		}
+		sendToAll(new Message(Type.UPDATE, text));
+	}
+	
 	public void removeClient(ClientHandler client) {
 		clients.remove(client);
 	}

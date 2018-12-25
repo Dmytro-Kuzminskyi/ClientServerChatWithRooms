@@ -13,7 +13,6 @@ public class Client {
 	private String username;
 	private ClientGUI gui;
 	
-	
 	public static void main(String[] args) {
 		new Client();
 	}
@@ -41,13 +40,15 @@ public class Client {
 	}
 	private void action(Message response) throws Exception {
 		if (response.getType().equals(Type.LOGIN.toString())) {
-			if (response.getText().equals(Response.OK.toString())) {
-				gui = new ClientGUI();
-			} else {
+			if (response.getText().equals(Response.ERROR.toString())) {				 
 				JOptionPane.showMessageDialog(null, "Username is not available!", "Error", JOptionPane.ERROR_MESSAGE);
 				outputStream.writeObject(new Message(Type.EXIT, ""));
 				outputStream.flush();
+			} else {
+				gui = new ClientGUI(response.getText().split("/"));
 			}
+		} else if (response.getType().equals(Type.UPDATE.toString())) {
+			gui.setUsernames(response.getText().split("/"));
 		}
-	}
+	}	
 }
