@@ -4,14 +4,18 @@ import java.util.ArrayList;
 
 public class Server {
 	private static final int PORT = 1427;
+	private static final String ROOM = "All";
 	private ArrayList<ClientHandler> clients;
+	private ArrayList<String> rooms;
 	
 	public static void main(String[] args) {
 		new Server(PORT);
 	}
 	
 	public Server(int port) {
-		clients = new ArrayList<ClientHandler>();
+		clients = new ArrayList<ClientHandler>();		
+		rooms = new ArrayList<>();
+		rooms.add("General");
 		Socket clientSocket = null;
 		ServerSocket server = null;
 		try {
@@ -35,24 +39,58 @@ public class Server {
 			}
 		}
 	}
+
 	
-	public void sendToAll(Message msg) {
-		for (ClientHandler client: clients) {
-			client.send(msg);
+	public void sendToAllWelcomeMsg(ClientHandler client) {
+		for (ClientHandler c: clients) {
+			if (c.getCurrentRoom().equals(rooms.get(0)) & !c.getUsername().equals(client.getUsername()))
+				c.send(new Message(Type.CHAT, Response.OK, "@" + client.getUsername() + " has been connected to the server!"));
 		}
 	}
 	
-	public void updateUserList() {
-		String text = "";
-		int size = clients.size();
+	public void sendTo(ClientHandler client, Message msg) {
+		String to = msg.getText();
 		for (ClientHandler c: clients) {
-			if (size-- != 1) {
-				text += c.getUsername() + "/";
-			} else {
-				text += c.getUsername();
+			if (to.equals(ROOM) & !c.getUsername().equals(client.getUsername())) {
+				c.send(new Message(Type.CHAT, Response.OK, msg.getAddText()));
 			}
 		}
-		sendToAll(new Message(Type.UPDATE, text));
+	}
+	
+	public void update() {
+		for (ClientHandler client: clients) {
+			String[] updateInfo = getInfoForUpdate(client);
+			client.send(new Message(Type.UPDATE, updateInfo[0], updateInfo[1]));
+		}
+	}
+	
+	private String[] getInfoForUpdate(ClientHandler client) {
+		String usersInfo = "";
+		int userCount = 0;
+		for (ClientHandler c: clients) {
+			if (c.getCurrentRoom().equals(client.getCurrentRoom())) {
+				userCount++;
+			}
+		}
+		for (ClientHandler c: clients) {
+			if (c.getCurrentRoom().equals(client.getCurrentRoom())) {
+				if (userCount-- != 1) {
+					usersInfo += c.getUsername() + "/";
+				} else {
+					usersInfo += c.getUsername();
+				}
+			}
+		}
+		String roomsInfo = "";
+		int roomCount = rooms.size();
+		for (String room: rooms) {
+			if (roomCount-- != 1) {
+				roomsInfo += room + "/";
+			} else {
+				roomsInfo += room;
+			}
+		}
+		return new String[] {usersInfo, roomsInfo};
 	}
 	
 	public void removeClient(ClientHandler client) {
@@ -61,5 +99,9 @@ public class Server {
 	
 	public ArrayList<ClientHandler> getClients() {
 		return clients;
+	}
+	
+	public ArrayList<String> getRooms() {
+		return rooms;
 	}
 }

@@ -2,5 +2,6 @@
 public enum Type {
 	LOGIN,
 	EXIT,
-	UPDATE
+	UPDATE,
+	CHAT
 }
