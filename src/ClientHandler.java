@@ -1,6 +1,7 @@
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class ClientHandler implements Runnable {
 	private Server server;
@@ -42,25 +43,38 @@ public class ClientHandler implements Runnable {
 					}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
 			this.close();
-		}
+			e.printStackTrace();
+		} 
 	} 
 	
 	public int send(Message msg) {
+		if (msg != null) {
+			try {
+				outputStream.writeObject(msg);
+				outputStream.flush();
+				if (msg.getType().equals(Type.LOGIN.toString()) & msg.getText().equals(Response.OK.toString())) 
+					return 1;
+				if (msg.getType().equals(Type.CHAT.toString()) & msg.getText().equals(Response.OK.toString())) 
+					return 2;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return 0;
+	}
+	
+	public void close(ClientHandler client) {
 		try {
-			outputStream.writeObject(msg);
-			outputStream.flush();
-			if (msg.getType().equals(Type.LOGIN.toString()) & msg.getText().equals(Response.OK.toString())) 
-				return 1;
-			if (msg.getType().equals(Type.CHAT.toString()) & msg.getText().equals(Response.OK.toString())) {
-				return 2;
+			if (server.sendToAllLeaveMsg(client) == 1) {
+				outputStream.close();
+				inputStream.close();
+				client.close();
+				server.removeClient(client);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return 0;
 	}
 	
 	public void close() {
@@ -73,8 +87,6 @@ public class ClientHandler implements Runnable {
 			e.printStackTrace();
 		}
 	}
-	
-	
 	
 	public String getUsername() {
 		return username;
@@ -107,9 +119,17 @@ public class ClientHandler implements Runnable {
 				return new Message(Type.LOGIN, Response.ERROR);
 			}
 		} else if (msg.getType().equals(Type.EXIT.toString())) {
-			close();
+			this.close(this);
 		} else if (msg.getType().equals(Type.CHAT.toString())) {
 			return new Message (Type.CHAT, Response.OK, msg.getAddText());
+		} else if (msg.getType().equals(Type.ADD_ROOM.toString())) {
+			ArrayList<String> rooms = server.getRooms();
+			for (String room: rooms) {
+				if (msg.getText().equals(room)) 
+					return new Message(Type.ADD_ROOM, Response.ERROR);
+			}
+			server.addRoom(msg.getText());
+			return new Message(Type.ADD_ROOM, Response.OK, msg.getText());
 		} 
 		return null;
 	}

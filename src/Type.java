@@ -3,5 +3,7 @@ public enum Type {
 	LOGIN,
 	EXIT,
 	UPDATE,
-	CHAT
+	CHAT,
+	ADD_ROOM,
+	CHANGE_ROOM
 }

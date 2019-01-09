@@ -20,7 +20,6 @@ import javax.swing.JTextPane;
 
 public class ClientGUI extends JFrame {
 	private static final String TO_ALL = " Message to All";
-	private static final String ROOM = "All";
 	private DefaultListModel<String> modelUsers;
 	private DefaultComboBoxModel<String> modelRooms;
 	private String[] usernames;
@@ -35,6 +34,7 @@ public class ClientGUI extends JFrame {
 	private JLabel receiversInfo;
 	private JButton sendButton;
 	private JTextField userMessage;
+	private JButton addRoomButton;
 	
 	public ClientGUI(Client client) {
 		this.setTitle("Chat");
@@ -82,7 +82,24 @@ public class ClientGUI extends JFrame {
 		spaneChat.setVisible(true);
 		spaneChat.getViewport().add(chatTextPane);
 		chatTextPane.setBorder(BorderFactory.createEtchedBorder());
-		chatTextPane.setText("Welcome to the chat server!\nNow you are in " + client.getCurrentRoom() + ".");
+		chatTextPane.setText("Welcome to the chat server!\nNow you are in General");
+		addRoomButton = new JButton("Create room");
+		addRoomButton.setBounds(100, 0, 120, 20);
+		addRoomButton.setVisible(true);
+		addRoomButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String roomName = "";
+				while (roomName.trim().isEmpty()) {
+					roomName = JOptionPane.showInputDialog(null, "Enter room name:");
+					if (roomName.contains("/"))
+						roomName = "";
+				}
+				client.addRoomRequest(roomName);
+			}
+			
+		});
 		sendButton = new JButton("Send");
 		sendButton.setBounds(275, 451, 75, 20);
 		sendButton.setEnabled(false);
@@ -92,7 +109,7 @@ public class ClientGUI extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (receiversInfo.getText().equals(TO_ALL)) {
-					client.sendMessage(ROOM, "@" + client.getUsername() + ": " + userMessage.getText());
+					client.sendMessage(client.getCurrentRoom(), "@" + client.getUsername() + ": " + userMessage.getText());
 					userMessage.setText("");
 					sendButton.setEnabled(false);
 				}
@@ -159,9 +176,19 @@ public class ClientGUI extends JFrame {
 		}
 	}
 	
+	public JComboBox<String> getRooms() {
+		return roomList;
+	}
+	
 	public void writeMessage(String message) {
 		String text = chatTextPane.getText();
 		text += "\n" + message;
+		chatTextPane.setText(text);
+	}
+	
+	public void changeRoomMessage(String selectedRoom) {
+		String text = chatTextPane.getText();
+		text += "\nNow you are in " + selectedRoom;
 		chatTextPane.setText(text);
 	}
 	
@@ -174,6 +201,6 @@ public class ClientGUI extends JFrame {
 		this.add(receiversInfo);
 		this.add(sendButton);
 		this.add(userMessage);
+		this.add(addRoomButton);
 	}
-
 }

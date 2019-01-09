@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 public class Server {
 	private static final int PORT = 1427;
-	private static final String ROOM = "All";
 	private ArrayList<ClientHandler> clients;
 	private ArrayList<String> rooms;
 	
@@ -48,10 +47,22 @@ public class Server {
 		}
 	}
 	
+	public int sendToAllLeaveMsg(ClientHandler client ) {
+		for (ClientHandler c: clients) {
+			if (!c.getUsername().equals(client.getUsername()) & c.getCurrentRoom().equals(rooms.get(0)))
+				c.send(new Message(Type.CHAT, Response.OK, "@" + client.getUsername() + " has been disconnected from the server!"));
+			if (!c.getUsername().equals(client.getUsername())) {
+				if (c.getCurrentRoom().equals(client.getCurrentRoom()) & !client.getCurrentRoom().equals(rooms.get(0)))
+					c.send(new Message(Type.CHAT, Response.OK, "@" + client.getUsername() + " has left the room!"));
+			}
+		}
+		return 1;
+	}
+	
 	public void sendTo(ClientHandler client, Message msg) {
 		String to = msg.getText();
 		for (ClientHandler c: clients) {
-			if (to.equals(ROOM) & !c.getUsername().equals(client.getUsername())) {
+			if (to.equals(c.getCurrentRoom()) & !c.getUsername().equals(client.getUsername())) {
 				c.send(new Message(Type.CHAT, Response.OK, msg.getAddText()));
 			}
 		}
@@ -103,5 +114,9 @@ public class Server {
 	
 	public ArrayList<String> getRooms() {
 		return rooms;
+	}
+	
+	public void addRoom(String room) {
+		rooms.add(room);
 	}
 }

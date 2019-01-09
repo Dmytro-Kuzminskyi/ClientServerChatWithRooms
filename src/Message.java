@@ -27,6 +27,7 @@ public class Message implements Serializable {
 		setType(type.toString());
 		setText(response.toString());
 		setAddText(null);
+		
 	}
 
 	public Message(Type type, Response response, String addText) {

@@ -1,8 +1,11 @@
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+
+import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 
 public class Client {
@@ -69,11 +72,17 @@ public class Client {
 			}
 		} else if (response.getType().equals(Type.UPDATE.toString())) {
 			gui.setUsernames(response.getText().split("/"));
-			gui.setRooms(response.getAddText().split("/"));
+			gui.setRooms(response.getAddText().split("/"));	
 		} else if (response.getType().equals(Type.CHAT.toString())) {
 			if (response.getText().equals(Response.OK.toString()))
 				gui.writeMessage(response.getAddText());
-		}
+		} else if (response.getType().equals(Type.ADD_ROOM.toString())) {
+			if (response.getText().equals(Response.OK.toString())) {
+				JOptionPane.showMessageDialog(null, "Room " + response.getAddText() + " has been created!", null, JOptionPane.INFORMATION_MESSAGE);
+			} else {
+				JOptionPane.showMessageDialog(null, "Room hasn't been created!", null, JOptionPane.ERROR_MESSAGE);
+			}
+		} 
 	}
 
 	public String getUsername() {
@@ -93,6 +102,15 @@ public class Client {
 			outputStream.writeObject(new Message(Type.CHAT, to, text));
 			outputStream.flush();
 		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void addRoomRequest(String name) {
+		try {
+			outputStream.writeObject(new Message(Type.ADD_ROOM, name));
+			outputStream.flush();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
