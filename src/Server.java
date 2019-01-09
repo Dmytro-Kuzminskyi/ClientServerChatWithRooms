@@ -59,6 +59,16 @@ public class Server {
 		return 1;
 	}
 	
+	public void sendToAllRoomChangeMsg(ClientHandler client) {
+		for (ClientHandler c: clients) {
+			if (!c.getUsername().equals(client.getUsername()) & client.getOldRoom().equals(c.getCurrentRoom())) {
+				c.send(new Message(Type.CHAT, Response.OK, "@" + client.getUsername() + " has left the room!"));
+			} else if (!c.getUsername().equals(client.getUsername()) & client.getCurrentRoom().equals(c.getCurrentRoom())) {
+				c.send(new Message(Type.CHAT, Response.OK, "@" + client.getUsername() + " has entered the room!"));
+			}
+		}
+	}
+	
 	public void sendTo(ClientHandler client, Message msg) {
 		String to = msg.getText();
 		for (ClientHandler c: clients) {

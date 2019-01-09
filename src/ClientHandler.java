@@ -10,6 +10,7 @@ public class ClientHandler implements Runnable {
 	private ObjectInputStream inputStream;
 	private String username;
 	private String currentRoom;
+	private String oldRoom;
 	
 	public ClientHandler(Socket client, Server server) {
 		try {
@@ -38,7 +39,10 @@ public class ClientHandler implements Runnable {
 							if (state == 1)
 								server.sendToAllWelcomeMsg(this);
 							else if (state == 2) 
-								server.sendTo(this, message);						
+								server.sendTo(this, message);	
+							else if (state == 3)
+								server.sendToAllRoomChangeMsg(this);
+								
 						}
 					}
 			}
@@ -57,6 +61,8 @@ public class ClientHandler implements Runnable {
 					return 1;
 				if (msg.getType().equals(Type.CHAT.toString()) & msg.getText().equals(Response.OK.toString())) 
 					return 2;
+				if (msg.getType().equals(Type.CHANGE_ROOM.toString()) & msg.getText().equals(Response.OK.toString()))
+					return 3;
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -100,6 +106,10 @@ public class ClientHandler implements Runnable {
 		return currentRoom;
 	}
 
+	public String getOldRoom() {
+		return oldRoom;
+	}
+	
 	public void setCurrentRoom(String currentRoom) {
 		this.currentRoom = currentRoom;
 	}
@@ -131,6 +141,7 @@ public class ClientHandler implements Runnable {
 			server.addRoom(msg.getText());
 			return new Message(Type.ADD_ROOM, Response.OK, msg.getText());
 		} else if (msg.getType().equals(Type.CHANGE_ROOM.toString())) {
+			oldRoom = currentRoom;
 			currentRoom = msg.getText();
 			return new Message(Type.CHANGE_ROOM, Response.OK, currentRoom);
 		}

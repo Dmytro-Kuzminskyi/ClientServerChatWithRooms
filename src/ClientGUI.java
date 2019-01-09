@@ -23,7 +23,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 public class ClientGUI extends JFrame {
-	private static final String TO_ALL = " Message to All";
 	private DefaultListModel<String> modelUsers;
 	private DefaultListModel<String> modelRooms;
 	private String[] usernames;
@@ -100,7 +99,7 @@ public class ClientGUI extends JFrame {
 		spaneRoomList = new JScrollPane();
 		spaneRoomList.setVisible(true);
 		spaneRoomList.getViewport().add(roomList);
-		receiversInfo = new JLabel(TO_ALL);
+		receiversInfo = new JLabel("Message to \"" + client.getCurrentRoom() + "\"");
 		receiversInfo.setBounds(0, 431, 350, 20);
 		receiversInfo.setOpaque(true);
 		receiversInfo.setBackground(Color.WHITE);
@@ -139,7 +138,7 @@ public class ClientGUI extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (receiversInfo.getText().equals(TO_ALL)) {
+				if (receiversInfo.getText().equals("Message to \"" + client.getCurrentRoom() + "\"")) {
 					client.sendMessage(client.getCurrentRoom(), "@" + client.getUsername() + ": " + userMessage.getText());
 					userMessage.setText("");
 					sendButton.setEnabled(false);
@@ -219,7 +218,11 @@ public class ClientGUI extends JFrame {
 		chatTextPane.setText(text);
 	}
 	
-	private void addAllCompToFrame() {
+	public void setReceivers(String text) {
+		receiversInfo.setText("Message to \"" + text + "\"");
+	}
+	
+ 	private void addAllCompToFrame() {
 		this.add(userCountInfo);
 		this.add(userCount);
 		this.add(chatTextPane);

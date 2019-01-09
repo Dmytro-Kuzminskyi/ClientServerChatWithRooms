@@ -85,6 +85,7 @@ public class Client {
 		} else if (response.getType().equals(Type.CHANGE_ROOM.toString())) {
 			if (response.getText().equals(Response.OK.toString())) {
 				currentRoom = response.getAddText();
+				gui.setReceivers(currentRoom);
 				gui.changeRoomMessage(currentRoom);
 			}
 		}
