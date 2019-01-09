@@ -82,7 +82,12 @@ public class Client {
 			} else {
 				JOptionPane.showMessageDialog(null, "Room hasn't been created!", null, JOptionPane.ERROR_MESSAGE);
 			}
-		} 
+		} else if (response.getType().equals(Type.CHANGE_ROOM.toString())) {
+			if (response.getText().equals(Response.OK.toString())) {
+				currentRoom = response.getAddText();
+				gui.changeRoomMessage(currentRoom);
+			}
+		}
 	}
 
 	public String getUsername() {
@@ -109,6 +114,15 @@ public class Client {
 	public void addRoomRequest(String name) {
 		try {
 			outputStream.writeObject(new Message(Type.ADD_ROOM, name));
+			outputStream.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void changeRoomRequest(String name) {
+		try {
+			outputStream.writeObject(new Message(Type.CHANGE_ROOM, name));
 			outputStream.flush();
 		} catch (IOException e) {
 			e.printStackTrace();

@@ -130,7 +130,10 @@ public class ClientHandler implements Runnable {
 			}
 			server.addRoom(msg.getText());
 			return new Message(Type.ADD_ROOM, Response.OK, msg.getText());
-		} 
+		} else if (msg.getType().equals(Type.CHANGE_ROOM.toString())) {
+			currentRoom = msg.getText();
+			return new Message(Type.CHANGE_ROOM, Response.OK, currentRoom);
+		}
 		return null;
 	}
 }

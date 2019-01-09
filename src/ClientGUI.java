@@ -1,6 +1,8 @@
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
@@ -17,19 +19,23 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public class ClientGUI extends JFrame {
 	private static final String TO_ALL = " Message to All";
 	private DefaultListModel<String> modelUsers;
-	private DefaultComboBoxModel<String> modelRooms;
+	private DefaultListModel<String> modelRooms;
 	private String[] usernames;
 	private String[] rooms;
 	private JList<String> userList;
-	private JScrollPane spaneList;
+	private JScrollPane spaneUserList;
 	private JScrollPane spaneChat;
 	private JLabel userCountInfo;
 	private JLabel userCount;
-	private JComboBox<String> roomList;
+	private JLabel roomsLabel;
+	private JList<String> roomList;
+	private JScrollPane spaneRoomList;
 	private JTextPane chatTextPane;
 	private JLabel receiversInfo;
 	private JButton sendButton;
@@ -43,7 +49,7 @@ public class ClientGUI extends JFrame {
 		this.setResizable(false);
 		this.setLocationRelativeTo(null);
 		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		userCountInfo = new JLabel("Users in chat:");
+		userCountInfo = new JLabel("  Users in chat:");
 		userCountInfo.setBounds(350, 0, 100, 20);
 		userCountInfo.setOpaque(true);
 		userCountInfo.setBackground(Color.WHITE);
@@ -54,21 +60,46 @@ public class ClientGUI extends JFrame {
 		userCount.setBackground(Color.WHITE);
 		userCount.setVisible(true);		
 		modelUsers = new DefaultListModel<String>();
+		roomsLabel = new JLabel("  Rooms:");
+		roomsLabel.setBounds(350, 220, 144, 20);
+		roomsLabel.setOpaque(true);
+		roomsLabel.setBackground(Color.WHITE);
+		roomsLabel.setVisible(true);
 		userList = new JList<String>(modelUsers);
-		userList.setBounds(350, 20, 144, 451);
+		userList.setBounds(350, 20, 144, 201);
 		userList.setBackground(Color.WHITE);
 		userList.setLayoutOrientation(JList.VERTICAL);
 		userList.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 		userList.setVisible(true);
-		spaneList = new JScrollPane();
-		spaneList.setVisible(true);
-		spaneList.getViewport().add(userList);
-		modelRooms = new DefaultComboBoxModel<String>();
-		roomList = new JComboBox<String>(modelRooms);
-		roomList.setBounds(0, 0, 100, 20);
+		spaneUserList = new JScrollPane();
+		spaneUserList.setVisible(true);
+		spaneUserList.getViewport().add(userList);
+		modelRooms = new DefaultListModel<String>();
+		roomList = new JList<String>(modelRooms);
+		roomList.setBounds(350, 240, 144, 231);
 		roomList.setBackground(Color.WHITE);
-		roomList.setFocusable(false);
+		roomList.setLayoutOrientation(JList.VERTICAL);
+		roomList.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 		roomList.setVisible(true);
+		roomList.addFocusListener(new FocusListener() {
+
+			@Override
+			public void focusGained(FocusEvent e) {
+				String selectedRoom = roomList.getSelectedValue();
+				if (!selectedRoom.equals(client.getCurrentRoom())) {
+					client.changeRoomRequest(selectedRoom);					
+				}
+				chatTextPane.requestFocus();
+			}
+
+			@Override
+			public void focusLost(FocusEvent e) {
+			}
+			
+		});
+		spaneRoomList = new JScrollPane();
+		spaneRoomList.setVisible(true);
+		spaneRoomList.getViewport().add(roomList);
 		receiversInfo = new JLabel(TO_ALL);
 		receiversInfo.setBounds(0, 431, 350, 20);
 		receiversInfo.setOpaque(true);
@@ -176,10 +207,6 @@ public class ClientGUI extends JFrame {
 		}
 	}
 	
-	public JComboBox<String> getRooms() {
-		return roomList;
-	}
-	
 	public void writeMessage(String message) {
 		String text = chatTextPane.getText();
 		text += "\n" + message;
@@ -202,5 +229,6 @@ public class ClientGUI extends JFrame {
 		this.add(sendButton);
 		this.add(userMessage);
 		this.add(addRoomButton);
+		this.add(roomsLabel);
 	}
 }
