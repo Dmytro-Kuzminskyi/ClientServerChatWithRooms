@@ -81,25 +81,34 @@ public class Server {
 	public void update() {
 		for (ClientHandler client: clients) {
 			String[] updateInfo = getInfoForUpdate(client);
-			client.send(new Message(Type.UPDATE, updateInfo[0], updateInfo[1]));
+			client.send(new Message(Type.UPDATE, updateInfo[0], updateInfo[1], updateInfo[2]));
 		}
 	}
 	
 	private String[] getInfoForUpdate(ClientHandler client) {
-		String usersInfo = "";
-		int userCount = 0;
+		String usersInfoCurrentRoom = "";
+		int userCountCurrentRoom = 0;
 		for (ClientHandler c: clients) {
 			if (c.getCurrentRoom().equals(client.getCurrentRoom())) {
-				userCount++;
+				userCountCurrentRoom++;
 			}
 		}
 		for (ClientHandler c: clients) {
 			if (c.getCurrentRoom().equals(client.getCurrentRoom())) {
-				if (userCount-- != 1) {
-					usersInfo += c.getUsername() + "/";
+				if (userCountCurrentRoom-- != 1) {
+					usersInfoCurrentRoom += c.getUsername() + "/";
 				} else {
-					usersInfo += c.getUsername();
+					usersInfoCurrentRoom += c.getUsername();
 				}
+			}
+		}
+		String allUsersInfo = "";
+		int allUsersCount = clients.size();
+		for (ClientHandler c: clients) {
+			if (allUsersCount-- != 1) {
+				allUsersInfo += c.getUsername() + "/";
+			} else {
+				allUsersInfo += c.getUsername();
 			}
 		}
 		String roomsInfo = "";
@@ -111,7 +120,7 @@ public class Server {
 				roomsInfo += room;
 			}
 		}
-		return new String[] {usersInfo, roomsInfo};
+		return new String[] {allUsersInfo, usersInfoCurrentRoom, roomsInfo};
 	}
 	
 	public void removeClient(ClientHandler client) {

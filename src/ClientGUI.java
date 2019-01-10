@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -8,10 +9,8 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -19,19 +18,22 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
 public class ClientGUI extends JFrame {
-	private DefaultListModel<String> modelUsers;
+	private DefaultListModel<String> modelUsersCurrentRoom;
+	private DefaultListModel<String> modelAllUsers;
 	private DefaultListModel<String> modelRooms;
-	private String[] usernames;
+	private String[] allUsers;
+	private String[] usersCurrentRoom;
 	private String[] rooms;
-	private JList<String> userList;
-	private JScrollPane spaneUserList;
+	private JList<String> userListCurrentRoom;
+	private JList<String> allUserList;
+	private JScrollPane spaneUserListCurrentRoom;
+	private JScrollPane spaneAllUser;
 	private JScrollPane spaneChat;
 	private JLabel userCountInfo;
-	private JLabel userCount;
+	private JLabel userCountCurrentRoom;
+	private JLabel allUsersCount;
 	private JLabel roomsLabel;
 	private JList<String> roomList;
 	private JScrollPane spaneRoomList;
@@ -40,6 +42,7 @@ public class ClientGUI extends JFrame {
 	private JButton sendButton;
 	private JTextField userMessage;
 	private JButton addRoomButton;
+	private JButton switchUserList;
 	
 	public ClientGUI(Client client) {
 		this.setTitle("Chat");
@@ -48,31 +51,45 @@ public class ClientGUI extends JFrame {
 		this.setResizable(false);
 		this.setLocationRelativeTo(null);
 		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		userCountInfo = new JLabel("  Users in chat:");
-		userCountInfo.setBounds(350, 0, 100, 20);
+		userCountInfo = new JLabel("  Users in room:");
+		userCountInfo.setBounds(350, 0, 95, 20);
 		userCountInfo.setOpaque(true);
 		userCountInfo.setBackground(Color.WHITE);
-		userCountInfo.setVisible(true);		
-		userCount = new JLabel("0");
-		userCount.setBounds(435, 0, 59, 20);
-		userCount.setOpaque(true);
-		userCount.setBackground(Color.WHITE);
-		userCount.setVisible(true);		
-		modelUsers = new DefaultListModel<String>();
+		userCountInfo.setVisible(true);	
+		allUsersCount = new JLabel("0");
+		allUsersCount.setBounds(445, 0, 25, 20);
+		allUsersCount.setOpaque(true);
+		allUsersCount.setBackground(Color.WHITE);
+		userCountCurrentRoom = new JLabel("0");
+		userCountCurrentRoom.setBounds(445, 0, 25, 20);
+		userCountCurrentRoom.setOpaque(true);
+		userCountCurrentRoom.setBackground(Color.WHITE);
+		userCountCurrentRoom.setVisible(true);		
+		modelUsersCurrentRoom = new DefaultListModel<String>();
+		modelAllUsers = new DefaultListModel<String>();
 		roomsLabel = new JLabel("  Rooms:");
 		roomsLabel.setBounds(350, 220, 144, 20);
 		roomsLabel.setOpaque(true);
 		roomsLabel.setBackground(Color.WHITE);
 		roomsLabel.setVisible(true);
-		userList = new JList<String>(modelUsers);
-		userList.setBounds(350, 20, 144, 201);
-		userList.setBackground(Color.WHITE);
-		userList.setLayoutOrientation(JList.VERTICAL);
-		userList.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-		userList.setVisible(true);
-		spaneUserList = new JScrollPane();
-		spaneUserList.setVisible(true);
-		spaneUserList.getViewport().add(userList);
+		allUserList = new JList<String>(modelAllUsers); 
+		allUserList.setBounds(350, 20, 144, 201);
+		allUserList.setBackground(Color.WHITE);
+		allUserList.setLayoutOrientation(JList.VERTICAL);
+		allUserList.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+		allUserList.setVisible(false);
+		spaneAllUser = new JScrollPane();
+		spaneAllUser.setVisible(true);
+		spaneAllUser.getViewport().add(allUserList);
+		userListCurrentRoom = new JList<String>(modelUsersCurrentRoom);
+		userListCurrentRoom.setBounds(350, 20, 144, 201);
+		userListCurrentRoom.setBackground(Color.WHITE);
+		userListCurrentRoom.setLayoutOrientation(JList.VERTICAL);
+		userListCurrentRoom.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+		userListCurrentRoom.setVisible(true);
+		spaneUserListCurrentRoom = new JScrollPane();
+		spaneUserListCurrentRoom.setVisible(true);
+		spaneUserListCurrentRoom.getViewport().add(userListCurrentRoom);
 		modelRooms = new DefaultListModel<String>();
 		roomList = new JList<String>(modelRooms);
 		roomList.setBounds(350, 240, 144, 231);
@@ -100,12 +117,12 @@ public class ClientGUI extends JFrame {
 		spaneRoomList.setVisible(true);
 		spaneRoomList.getViewport().add(roomList);
 		receiversInfo = new JLabel("Message to \"" + client.getCurrentRoom() + "\"");
-		receiversInfo.setBounds(0, 431, 350, 20);
+		receiversInfo.setBounds(0, 431, 200, 20);
 		receiversInfo.setOpaque(true);
 		receiversInfo.setBackground(Color.WHITE);
 		receiversInfo.setVisible(true);
 		chatTextPane = new JTextPane();
-		chatTextPane.setBounds(0, 20, 350, 400);
+		chatTextPane.setBounds(0, 20, 350, 411);
 		chatTextPane.setVisible(true);
 		chatTextPane.setEditable(false);
 		spaneChat = new JScrollPane();
@@ -113,8 +130,9 @@ public class ClientGUI extends JFrame {
 		spaneChat.getViewport().add(chatTextPane);
 		chatTextPane.setBorder(BorderFactory.createEtchedBorder());
 		chatTextPane.setText("Welcome to the chat server!\nNow you are in General");
-		addRoomButton = new JButton("Create room");
-		addRoomButton.setBounds(100, 0, 120, 20);
+		addRoomButton = new JButton("Create public room");
+		addRoomButton.setBounds(0, 0, 120, 20);
+		addRoomButton.setMargin(new Insets(1, 1, 1, 1));
 		addRoomButton.setVisible(true);
 		addRoomButton.addActionListener(new ActionListener() {
 
@@ -123,7 +141,7 @@ public class ClientGUI extends JFrame {
 				String roomName = "";
 				while (roomName.trim().isEmpty()) {
 					roomName = JOptionPane.showInputDialog(null, "Enter room name:");
-					if (roomName.contains("/"))
+					if (roomName.contains("/") | roomName.contains(" ") | roomName.length() > 15)
 						roomName = "";
 				}
 				client.addRoomRequest(roomName);
@@ -131,7 +149,8 @@ public class ClientGUI extends JFrame {
 			
 		});
 		sendButton = new JButton("Send");
-		sendButton.setBounds(275, 451, 75, 20);
+		sendButton.setBounds(290, 451, 60, 20);
+		sendButton.setMargin(new Insets(1, 1, 1, 1));
 		sendButton.setEnabled(false);
 		sendButton.setVisible(true);
 		sendButton.addActionListener(new ActionListener() {
@@ -148,7 +167,7 @@ public class ClientGUI extends JFrame {
 		});
 		userMessage = new JTextField();
 		userMessage.setEditable(true);
-		userMessage.setBounds(0, 451, 275, 20);
+		userMessage.setBounds(0, 451, 290, 20);
 		userMessage.setVisible(true);
 		userMessage.addKeyListener(new KeyListener() {
 
@@ -174,6 +193,32 @@ public class ClientGUI extends JFrame {
 			}
 			
 		});
+		switchUserList = new JButton("A");
+		switchUserList.setBounds(470, 0, 25, 20);
+		switchUserList.setMargin(new Insets(1, 1, 1, 1));
+		switchUserList.setVisible(true);
+		switchUserList.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {				
+				if (switchUserList.getText().equals("A")) {
+					userCountInfo.setText("  Users in chat:");
+					userListCurrentRoom.setVisible(false);
+					allUserList.setVisible(true);
+					userCountCurrentRoom.setVisible(false);
+					allUsersCount.setVisible(true);
+					switchUserList.setText("R");
+				} else {					
+					userCountInfo.setText("  Users in room:");
+					allUserList.setVisible(false);
+					userListCurrentRoom.setVisible(true);
+					allUsersCount.setVisible(false);
+					userCountCurrentRoom.setVisible(true);
+					switchUserList.setText("A");
+				}
+			}
+			
+		});
 		addAllCompToFrame();
 		this.setVisible(true);
 		this.addWindowListener(new WindowAdapter() {
@@ -189,13 +234,22 @@ public class ClientGUI extends JFrame {
 		});
 	}
 	
-	public void setUsernames(String[] users) {
-		this.usernames = users;
-		modelUsers.removeAllElements();
-		for (String user: usernames) {
-			modelUsers.addElement("@" + user);
+	public void setAllUsers(String[] users) {
+		this.allUsers = users;
+		modelAllUsers.removeAllElements();
+		for (String user: allUsers) {
+			modelAllUsers.addElement("@" + user);
 		}
-		userCount.setText("" + modelUsers.size());
+		allUsersCount.setText("" + modelAllUsers.size());
+	}
+	
+	public void setUsersCurrentRoom(String[] users) {
+		this.usersCurrentRoom = users;
+		modelUsersCurrentRoom.removeAllElements();
+		for (String user: usersCurrentRoom) {
+			modelUsersCurrentRoom.addElement("@" + user);
+		}
+		userCountCurrentRoom.setText("" + modelUsersCurrentRoom.size());
 	}
 	
 	public void setRooms(String[] rooms) {
@@ -224,14 +278,17 @@ public class ClientGUI extends JFrame {
 	
  	private void addAllCompToFrame() {
 		this.add(userCountInfo);
-		this.add(userCount);
+		this.add(userCountCurrentRoom);
+		this.add(allUsersCount);
 		this.add(chatTextPane);
 		this.add(roomList);
-		this.add(userList);
+		this.add(userListCurrentRoom);
 		this.add(receiversInfo);
 		this.add(sendButton);
 		this.add(userMessage);
 		this.add(addRoomButton);
 		this.add(roomsLabel);
+		this.add(switchUserList);
+		this.add(allUserList);
 	}
 }

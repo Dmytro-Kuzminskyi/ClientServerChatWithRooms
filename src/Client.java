@@ -25,8 +25,9 @@ public class Client {
 		username = "";
 		while (username.trim().isEmpty()) {
 			username = JOptionPane.showInputDialog(null, "Enter username:");
-			if (username.contains("/"))
-				username = "";
+			if (username.contains("/") | username.contains(" ") | username.length() > 15) {
+				username = "";				
+			}
 		}
 		try {
 			client = new Socket(InetAddress.getLocalHost(), SERVER_PORT);
@@ -71,8 +72,9 @@ public class Client {
 				gui = new ClientGUI(this);				
 			}
 		} else if (response.getType().equals(Type.UPDATE.toString())) {
-			gui.setUsernames(response.getText().split("/"));
-			gui.setRooms(response.getAddText().split("/"));	
+			gui.setAllUsers(response.getText().split("/"));
+			gui.setUsersCurrentRoom(response.getAddText().split("/"));
+			gui.setRooms(response.getAddText2().split("/"));	
 		} else if (response.getType().equals(Type.CHAT.toString())) {
 			if (response.getText().equals(Response.OK.toString()))
 				gui.writeMessage(response.getAddText());
