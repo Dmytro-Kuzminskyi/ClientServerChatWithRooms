@@ -25,7 +25,7 @@ public class Client {
 		username = "";
 		while (username.trim().isEmpty()) {
 			username = JOptionPane.showInputDialog(null, "Enter username:");
-			if (username.contains("/") | username.contains(" ") | username.length() > 15) {
+			if (username.contains("/") | username.contains(" ") | username.contains("@") | username.length() > 15) {
 				username = "";				
 			}
 		}
@@ -75,7 +75,7 @@ public class Client {
 			gui.setAllUsers(response.getText().split("/"));
 			gui.setUsersCurrentRoom(response.getAddText().split("/"));
 			gui.setRooms(response.getAddText2().split("/"));	
-		} else if (response.getType().equals(Type.CHAT.toString())) {
+		} else if (response.getType().equals(Type.CHAT.toString()) | response.getType().equals(Type.PRIVATE.toString())) {
 			if (response.getText().equals(Response.OK.toString()))
 				gui.writeMessage(response.getAddText());
 		} else if (response.getType().equals(Type.ADD_ROOM.toString())) {
@@ -108,6 +108,15 @@ public class Client {
 	public void sendMessage(String to, String text) {
 		try {
 			outputStream.writeObject(new Message(Type.CHAT, to, text));
+			outputStream.flush();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void sendPrivateMessage(String to, String text) {
+		try {
+			outputStream.writeObject(new Message(Type.PRIVATE, to, text));
 			outputStream.flush();
 		} catch (Exception e) {
 			e.printStackTrace();

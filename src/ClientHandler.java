@@ -42,7 +42,8 @@ public class ClientHandler implements Runnable {
 								server.sendTo(this, message);	
 							else if (state == 3)
 								server.sendToAllRoomChangeMsg(this);
-								
+							else if (state == 4)
+								server.sendPrivateTo(this, message);
 						}
 					}
 			}
@@ -63,6 +64,8 @@ public class ClientHandler implements Runnable {
 					return 2;
 				if (msg.getType().equals(Type.CHANGE_ROOM.toString()) & msg.getText().equals(Response.OK.toString()))
 					return 3;
+				if (msg.getType().equals(Type.PRIVATE.toString()) & msg.getText().equals(Response.OK.toString()))
+					return 4;
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -131,7 +134,7 @@ public class ClientHandler implements Runnable {
 		} else if (msg.getType().equals(Type.EXIT.toString())) {
 			this.close(this);
 		} else if (msg.getType().equals(Type.CHAT.toString())) {
-			return new Message (Type.CHAT, Response.OK, msg.getAddText());
+			return new Message(Type.CHAT, Response.OK, msg.getAddText());
 		} else if (msg.getType().equals(Type.ADD_ROOM.toString())) {
 			ArrayList<String> rooms = server.getRooms();
 			for (String room: rooms) {
@@ -144,6 +147,8 @@ public class ClientHandler implements Runnable {
 			oldRoom = currentRoom;
 			currentRoom = msg.getText();
 			return new Message(Type.CHANGE_ROOM, Response.OK, currentRoom);
+		} else if (msg.getType().equals(Type.PRIVATE.toString())) {
+			return new Message(Type.PRIVATE, Response.OK, msg.getAddText());
 		}
 		return null;
 	}

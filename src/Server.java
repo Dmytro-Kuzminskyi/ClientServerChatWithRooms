@@ -78,6 +78,14 @@ public class Server {
 		}
 	}
 	
+	public void sendPrivateTo(ClientHandler client, Message msg) {
+		String to = msg.getText();
+		for (ClientHandler c: clients) {
+			if (to.equals(c.getUsername())) 
+				c.send(new Message(Type.PRIVATE, Response.OK, msg.getAddText()));
+		}
+	}
+	
 	public void update() {
 		for (ClientHandler client: clients) {
 			String[] updateInfo = getInfoForUpdate(client);

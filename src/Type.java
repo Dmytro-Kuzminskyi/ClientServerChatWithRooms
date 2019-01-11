@@ -4,6 +4,7 @@ public enum Type {
 	EXIT,
 	UPDATE,
 	CHAT,
+	PRIVATE,
 	ADD_ROOM,
-	CHANGE_ROOM
+	CHANGE_ROOM,
 }

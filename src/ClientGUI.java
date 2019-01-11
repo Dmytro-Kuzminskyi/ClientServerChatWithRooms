@@ -43,6 +43,7 @@ public class ClientGUI extends JFrame {
 	private JTextField userMessage;
 	private JButton addRoomButton;
 	private JButton switchUserList;
+	private JButton resetPrivateMsgButton;
 	
 	public ClientGUI(Client client) {
 		this.setTitle("Chat");
@@ -73,20 +74,52 @@ public class ClientGUI extends JFrame {
 		roomsLabel.setBackground(Color.WHITE);
 		roomsLabel.setVisible(true);
 		allUserList = new JList<String>(modelAllUsers); 
-		allUserList.setBounds(350, 20, 144, 201);
+		allUserList.setBounds(350, 20, 144, 200);
 		allUserList.setBackground(Color.WHITE);
 		allUserList.setLayoutOrientation(JList.VERTICAL);
 		allUserList.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 		allUserList.setVisible(false);
+		allUserList.addFocusListener(new FocusListener() {
+
+			@Override
+			public void focusGained(FocusEvent e) {
+				String selectedUser = allUserList.getSelectedValue();
+				if (!selectedUser.equals("@" + client.getUsername())) {
+					setReceivers(selectedUser);
+				}
+				chatTextPane.requestFocus();
+			}
+
+			@Override
+			public void focusLost(FocusEvent e) {
+			}
+			
+		});
 		spaneAllUser = new JScrollPane();
 		spaneAllUser.setVisible(true);
 		spaneAllUser.getViewport().add(allUserList);
 		userListCurrentRoom = new JList<String>(modelUsersCurrentRoom);
-		userListCurrentRoom.setBounds(350, 20, 144, 201);
+		userListCurrentRoom.setBounds(350, 20, 144, 200);
 		userListCurrentRoom.setBackground(Color.WHITE);
 		userListCurrentRoom.setLayoutOrientation(JList.VERTICAL);
 		userListCurrentRoom.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 		userListCurrentRoom.setVisible(true);
+		userListCurrentRoom.addFocusListener(new FocusListener() {
+
+			@Override
+			public void focusGained(FocusEvent e) {
+				String selectedUser = userListCurrentRoom.getSelectedValue();
+				if (!selectedUser.equals("@" + client.getUsername())) {
+					setReceivers(selectedUser);
+				}
+				chatTextPane.requestFocus();
+			}
+
+			@Override
+			public void focusLost(FocusEvent e) {				
+			}
+			
+		});
 		spaneUserListCurrentRoom = new JScrollPane();
 		spaneUserListCurrentRoom.setVisible(true);
 		spaneUserListCurrentRoom.getViewport().add(userListCurrentRoom);
@@ -121,6 +154,16 @@ public class ClientGUI extends JFrame {
 		receiversInfo.setOpaque(true);
 		receiversInfo.setBackground(Color.WHITE);
 		receiversInfo.setVisible(true);
+		resetPrivateMsgButton = new JButton("X");
+		resetPrivateMsgButton.setBounds(201, 431, 20, 20);
+		resetPrivateMsgButton.setVisible(false);
+		resetPrivateMsgButton.setMargin(new Insets(1, 1, 1, 1));
+		resetPrivateMsgButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				setReceivers("General");
+			}});
 		chatTextPane = new JTextPane();
 		chatTextPane.setBounds(0, 20, 350, 411);
 		chatTextPane.setVisible(true);
@@ -141,7 +184,7 @@ public class ClientGUI extends JFrame {
 				String roomName = "";
 				while (roomName.trim().isEmpty()) {
 					roomName = JOptionPane.showInputDialog(null, "Enter room name:");
-					if (roomName.contains("/") | roomName.contains(" ") | roomName.length() > 15)
+					if (roomName.contains("/") | roomName.contains(" ") | roomName.contains("@") | roomName.length() > 15)
 						roomName = "";
 				}
 				client.addRoomRequest(roomName);
@@ -157,8 +200,14 @@ public class ClientGUI extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (receiversInfo.getText().equals("Message to \"" + client.getCurrentRoom() + "\"")) {
+				if (!receiversInfo.getText().contains("@")) {
 					client.sendMessage(client.getCurrentRoom(), "@" + client.getUsername() + ": " + userMessage.getText());
+					userMessage.setText("");
+					sendButton.setEnabled(false);
+				} else {
+					int startPos = receiversInfo.getText().indexOf("@");
+					client.sendPrivateMessage(receiversInfo.getText().substring(startPos + 1, receiversInfo.getText().length() - 1),
+							"(Private)@" + client.getUsername() + " to \"" + receiversInfo.getText().substring(startPos, receiversInfo.getText().length() - 1) + "\": " + userMessage.getText());
 					userMessage.setText("");
 					sendButton.setEnabled(false);
 				}
@@ -274,6 +323,11 @@ public class ClientGUI extends JFrame {
 	
 	public void setReceivers(String text) {
 		receiversInfo.setText("Message to \"" + text + "\"");
+		if (!receiversInfo.getText().equals("Message to \"General\""))
+			resetPrivateMsgButton.setVisible(true);
+		else {
+			resetPrivateMsgButton.setVisible(false);
+		}
 	}
 	
  	private void addAllCompToFrame() {
@@ -290,5 +344,6 @@ public class ClientGUI extends JFrame {
 		this.add(roomsLabel);
 		this.add(switchUserList);
 		this.add(allUserList);
+		this.add(resetPrivateMsgButton);
 	}
 }
