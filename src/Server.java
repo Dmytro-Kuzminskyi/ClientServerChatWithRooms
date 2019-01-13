@@ -80,9 +80,10 @@ public class Server {
 	
 	public void sendPrivateTo(ClientHandler client, Message msg) {
 		String to = msg.getText();
+		String text = msg.getAddText().substring(msg.getAddText().indexOf(":"), msg.getAddText().length());
 		for (ClientHandler c: clients) {
 			if (to.equals(c.getUsername())) 
-				c.send(new Message(Type.PRIVATE, Response.OK, msg.getAddText()));
+				c.send(new Message(Type.PRIVATE, Response.OK, "(Private) From \"@" + client.getUsername() + "\"" + text));
 		}
 	}
 	
